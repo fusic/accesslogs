@@ -22,7 +22,8 @@ class AccessLogsTable extends Table
     {
         $validator
             ->integer('user_id')
-            ->allowEmpty('user_id', 'create');
+            ->notEmpty('user_id', 'create')
+            ->requirePresence('user_id', 'create');
 
         $validator
             ->requirePresence('controller', 'create')

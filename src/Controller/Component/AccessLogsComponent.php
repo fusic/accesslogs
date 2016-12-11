@@ -19,12 +19,15 @@ class AccessLogsComponent extends Component
     protected $action_name = 'action';
     protected $controller_name = 'controller';
     protected $pass_name = 'passes';
+    protected $query = 'query';
+    protected $data = 'data';
     // user ID read from auth component.
     protected $user_id = 'user_id';
 
     public function initialize(array $config)
     {
         parent::initialize($config);
+        $this->_defaultConfig += $this->config();
         // DB接続
         try {
             $this->table = TableRegistry::get($this->tableName);
@@ -39,7 +42,6 @@ class AccessLogsComponent extends Component
      */
     public function beforeFilter(Event $event)
     {
-
         // controller object を取得
         $this->controller = $this->_registry->getController();
 
@@ -90,12 +92,17 @@ class AccessLogsComponent extends Component
         $returnArray[$this->action_name] = $this->getRequestInfo('action');
         $returnArray[$this->controller_name] = $this->getRequestInfo('controller');
         $returnArray[$this->pass_name] = $this->getRequestInfo('pass');
+        $returnArray[$this->query] = $this->getRequestParams('query');
+        $returnArray[$this->data] = $this->getRequestParams('data');
 
         return $returnArray;
     }
 
     protected function getAuthInfo()
     {
+        if (!$this->ignoreChecker('user_id')) {
+            return;
+        }
         $user = $this->controller->Auth->user();
         if (!isset($user['id'])) {
             return;
@@ -106,6 +113,10 @@ class AccessLogsComponent extends Component
 
     protected function getGlobalIp()
     {
+        if (!$this->ignoreChecker('client_ip')) {
+            return;
+        }
+
         return $this->request->clientIp(false);
     }
 
@@ -116,6 +127,9 @@ class AccessLogsComponent extends Component
      */
     protected function getRequestInfo($param)
     {
+        if (!$this->ignoreChecker($param)) {
+            return;
+        }
         $requestParams = $this->controller->request->params;
         if (!isset($requestParams[$param])) {
             return false;
@@ -125,5 +139,50 @@ class AccessLogsComponent extends Component
         }
 
         return $requestParams[$param];
+    }
+
+    /**
+     * getRequestParams.
+     *
+     * @return [type] [description]
+     */
+    protected function getRequestParams($param)
+    {
+        if (!$this->ignoreChecker($param)) {
+            return;
+        }
+        if (empty($this->request->{$param})) {
+            return;
+        }
+        $request = $this->request->{$param};
+        if (is_array($request)) {
+            return json_encode($request);
+        }
+
+        return $request;
+    }
+
+    /**
+     * ignoreChecker
+     * check ignore list.
+     *
+     * @param [type] $string [column name]
+     *
+     * @return [bool]
+     *
+     * if $string is settled in ['ignore'], return false
+     * else return true
+     */
+    protected function ignoreChecker($string)
+    {
+        if (!isset($this->_defaultConfig['ignore'])) {
+            return true;
+        }
+
+        if (!in_array($string, $this->_defaultConfig['ignore'])) {
+            return true;
+        }
+
+        return false;
     }
 }
