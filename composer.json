@@ -1,5 +1,5 @@
 {
-    "name": "your-name-here/AccessLogs",
+    "name": "fusic/accesslogs",
     "description": "AccessLogs plugin for CakePHP",
     "type": "cakephp-plugin",
     "require": {
