@@ -1,4 +1,5 @@
 # AccessLogs plugin for CakePHP
+maintainer: @gorogoroyasu
 
 ## Installation
 
