@@ -14,6 +14,8 @@ class AccessLogsComponent extends Component
 
     protected $tableName = 'AccessLogs.AccessLogs';
 
+    protected $savedLog;
+
     // column name settings
     protected $client_ip = 'client_ip';
     protected $action_name = 'action';
@@ -53,7 +55,7 @@ class AccessLogsComponent extends Component
         if (!$isSavable) {
             return false;
         }
-        // エンティティを作成
+
         $isSaved = $this->logging($saveArray);
 
         if (!$isSaved) {
@@ -63,11 +65,43 @@ class AccessLogsComponent extends Component
         return true;
     }
 
-    protected function logging($saveArray)
+    /**
+     * shutdown in case of the action is Login, beforeFilter cannot get the user_id.
+     * so, I use the shutdown method to get the User Info, and update the log, here.
+     */
+    public function shutdown(Event $event)
     {
-        return $this->table->saveLog($saveArray);
+        if (in_array($this->controller->request->action, ['logout', 'login'])) {
+            return;
+        }
+        $entity = $this->savedLog;
+        $userInfo['user_id'] = $this->getAuthInfo();
+        $entity = $this->table->patchEntity($entity, $userInfo);
+        $isSaved = $this->table->updateLog($entity);
+        if (!$isSaved) {
+            return false;
+        }
+        return true;
     }
 
+    /**
+     * logging logging method will call savelog in AccessLogsTable
+     * @param  [type] $saveArray [description]
+     * @return [type]            [description]
+     */
+    protected function logging($saveArray)
+    {
+        $this->savedLog = $this->table->saveLog($saveArray);
+        if ($this->savedLog) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * columnsInfo
+     * @return [type] [description]
+     */
     protected function columnsInfo()
     {
         return $this->table->getColumnsInfo();
@@ -85,7 +119,7 @@ class AccessLogsComponent extends Component
     protected function createSaveArray()
     {
         $returnArray = [];
-        $returnArray[$this->user_id] = $this->getAuthInfo();
+
         $returnArray[$this->client_ip] = $this->getGlobalIp();
         $returnArray[$this->action_name] = $this->getRequestInfo('action');
         $returnArray[$this->controller_name] = $this->getRequestInfo('controller');
@@ -94,6 +128,10 @@ class AccessLogsComponent extends Component
         return $returnArray;
     }
 
+    /**
+     * getAuthInfo method to get the auth user id
+     * @return [type] auth user id
+     */
     protected function getAuthInfo()
     {
         $user = $this->controller->Auth->user();
@@ -104,15 +142,19 @@ class AccessLogsComponent extends Component
         return $user['id'];
     }
 
+    /**
+     * getGlobalIp the ip address who accessed the page.
+     * @return ip address
+     */
     protected function getGlobalIp()
     {
         return $this->request->clientIp(false);
     }
 
     /**
-     * getActionsInfo.
+     * get the request info.
      *
-     * @return [type] [description]
+     * @return [array] json encoded params.
      */
     protected function getRequestInfo($param)
     {
