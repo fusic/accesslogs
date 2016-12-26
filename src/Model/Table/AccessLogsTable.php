@@ -44,22 +44,47 @@ class AccessLogsTable extends Table
         return $validator;
     }
 
-    public function saveLog($array)
+    /**
+     * saveLog save the log of access except for auth user id.
+     * @param  [array] array to create the save entity
+     * @return [entity] saved Entity.
+     */
+    public function saveLog(array $array)
     {
         $array['created'] = new FrozenTime();
         $data = $this->newEntity($array);
         if ($this->save($data)) {
-            return true;
+            return $data;
         } else {
             throw new \Cake\Network\Exception\InternalErrorException('couldnt save the log.', 500);
         }
     }
 
+    /**
+     * updateLog the method to save auth user id.
+     * @param  [entity] the entity created in the method saveLog.
+     * @return [entity] the saved entity with auth user id.
+     */
+    public function updateLog($entity)
+    {
+        if ($this->save($entity)) {
+            return $entity;
+        } else {
+            throw new \Cake\Network\Exception\InternalErrorException('couldnt save the log.', 500);
+        }
+    }
+
+    /**
+     * getColumnsInfo method to get the column infomation.
+     */
     public function getColumnsInfo()
     {
         return $this->schema()->columns();
     }
 
+    /**
+     * checkColumn check the column is savable or not.
+     */
     public function checkColumn($saveArray, $columns)
     {
         foreach ($saveArray as $key => $value) {
