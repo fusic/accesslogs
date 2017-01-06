@@ -12,6 +12,13 @@ composer require fusic/AccessLogs
 in controller which you want to save logs,
 ```
 $this->loadComponent('AccessLogs.AccessLogs');
+
+//in case you dont want to save some specific data,
+// you have to modify how to load the component like shown below.
+// (like, password, credit cart, etc...)
+
+$this->loadComponent('AccessLogs.AccessLogs', ['blacklist' => ['password']]);
+
 ```
 
 next, you have to exec the migration.
@@ -32,12 +39,23 @@ class AccessLogs extends AbstractMigration
     public function change()
     {
         $table = $this->table('access_logs');
-        $table->addColumn('user_id',         'integer',      ['null' => true])
-              ->addColumn('controller',      'text',         ['null' => false])
-              ->addColumn('action',          'text',         ['null' => false])
-              ->addColumn('passes',          'text',         ['null' => true])
-              ->addColumn('client_ip',       'text',         ['null' => true])
-              ->addColumn('created',         'timestamp',    ['null' => false])
+        $table->addColumn('user_id',         'integer',        ['null' => true])
+              ->addColumn('controller',      'string',         ['null' => true, 'limit' => 255])
+              ->addColumn('action',          'string',         ['null' => true, 'limit' => 255])
+              ->addColumn('passes',          'string',         ['null' => true, 'limit' => 255])
+              ->addColumn('client_ip',       'string',         ['null' => true, 'limit' => 255])
+              ->addColumn('url',             'string',         ['null' => true, 'limit' => 255])
+              ->addColumn('code',            'string',         ['null' => true, 'limit' => 255])
+              ->addColumn('query',            'string',        ['null' => true])
+              ->addColumn('data',            'string',         ['null' => true])
+              ->addColumn('created',         'timestamp',      ['null' => false])
+              ->addIndex('user_id')
+              ->addIndex('controller')
+              ->addIndex('action')
+              ->addIndex('passes')
+              ->addIndex('client_ip')
+              ->addIndex('url')
+              ->addIndex('code')
               ->create();
     }
 }

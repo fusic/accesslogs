@@ -21,12 +21,15 @@ class AccessLogsComponent extends Component
     protected $action_name = 'action';
     protected $controller_name = 'controller';
     protected $pass_name = 'passes';
+    protected $query = 'query';
+    protected $data = 'data';
     // user ID read from auth component.
     protected $user_id = 'user_id';
 
     public function initialize(array $config)
     {
         parent::initialize($config);
+        $this->_defaultConfig += $this->config();
         // DB接続
         try {
             $this->table = TableRegistry::get($this->tableName);
@@ -41,7 +44,6 @@ class AccessLogsComponent extends Component
      */
     public function beforeFilter(Event $event)
     {
-
         // controller object を取得
         $this->controller = $this->_registry->getController();
 
@@ -81,13 +83,16 @@ class AccessLogsComponent extends Component
         if (!$isSaved) {
             return false;
         }
+
         return true;
     }
 
     /**
-     * logging logging method will call savelog in AccessLogsTable
-     * @param  [type] $saveArray [description]
-     * @return [type]            [description]
+     * logging logging method will call savelog in AccessLogsTable.
+     *
+     * @param [type] $saveArray [description]
+     *
+     * @return [type] [description]
      */
     protected function logging($saveArray)
     {
@@ -95,13 +100,24 @@ class AccessLogsComponent extends Component
         if ($this->savedLog) {
             return true;
         }
+
         return false;
     }
 
     /**
-     * columnsInfo
+     * specialLog 外部から呼び出すやつ。
+     *
+     * @param [type] $code [description]
+     *
      * @return [type] [description]
      */
+    public function specialLog($code)
+    {
+        $saveArray['code'] = $code;
+
+        return $this->table->updateLog($saveArray);
+    }
+
     protected function columnsInfo()
     {
         return $this->table->getColumnsInfo();
@@ -124,16 +140,22 @@ class AccessLogsComponent extends Component
         $returnArray[$this->action_name] = $this->getRequestInfo('action');
         $returnArray[$this->controller_name] = $this->getRequestInfo('controller');
         $returnArray[$this->pass_name] = $this->getRequestInfo('pass');
+        $returnArray[$this->query] = $this->getRequestParams('query');
+        $returnArray[$this->data] = $this->getRequestParams('data');
 
         return $returnArray;
     }
 
     /**
-     * getAuthInfo method to get the auth user id
+     * getAuthInfo method to get the auth user id.
+     *
      * @return [type] auth user id
      */
     protected function getAuthInfo()
     {
+        if (!$this->ignoreChecker('user_id')) {
+            return;
+        }
         $user = $this->controller->Auth->user();
         if (!isset($user['id'])) {
             return;
@@ -144,20 +166,28 @@ class AccessLogsComponent extends Component
 
     /**
      * getGlobalIp the ip address who accessed the page.
+     *
      * @return ip address
      */
     protected function getGlobalIp()
     {
+        if (!$this->ignoreChecker('client_ip')) {
+            return;
+        }
+
         return $this->request->clientIp(false);
     }
 
     /**
      * get the request info.
      *
-     * @return [array] json encoded params.
+     * @return [array] json encoded params
      */
     protected function getRequestInfo($param)
     {
+        if (!$this->ignoreChecker($param)) {
+            return;
+        }
         $requestParams = $this->controller->request->params;
         if (!isset($requestParams[$param])) {
             return false;
@@ -167,5 +197,64 @@ class AccessLogsComponent extends Component
         }
 
         return $requestParams[$param];
+    }
+
+    /**
+     * getRequestParams.
+     *
+     * @return [type] [description]
+     */
+    protected function getRequestParams($param)
+    {
+        if (!$this->ignoreChecker($param)) {
+            return;
+        }
+        if (empty($this->request->{$param})) {
+            return;
+        }
+        $request = $this->request->{$param};
+        if (is_array($request)) {
+            $request = $this->blakclistChecker($request);
+
+            return json_encode($request);
+        }
+
+        return $request;
+    }
+
+    /**
+     * ignoreChecker
+     * check ignore list.
+     *
+     * @param [type] $string [column name]
+     *
+     * @return [bool]
+     *
+     * if $string is settled in ['ignore'], return false
+     * else return true
+     */
+    protected function ignoreChecker($string)
+    {
+        if (!isset($this->_defaultConfig['ignore'])) {
+            return true;
+        }
+
+        if (!in_array($string, $this->_defaultConfig['ignore'])) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected function blakclistChecker($array)
+    {
+        $blacklist = $this->_defaultConfig['blacklist'];
+        foreach ($array as $key => $value) {
+            if (in_array($key, $blacklist)) {
+                unset($array[$key]);
+            }
+        }
+
+        return $array;
     }
 }
