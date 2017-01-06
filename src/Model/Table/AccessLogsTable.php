@@ -11,6 +11,7 @@ use Cake\Validation\Validator;
  */
 class AccessLogsTable extends Table
 {
+    private $savedEntity;
     /**
      * Default validation rules.
      *
@@ -22,7 +23,7 @@ class AccessLogsTable extends Table
     {
         $validator
             ->integer('user_id')
-            ->notEmpty('user_id', 'create')
+            ->allowEmpty('user_id')
             ->requirePresence('user_id', 'create');
 
         $validator
@@ -49,7 +50,23 @@ class AccessLogsTable extends Table
     {
         $array['created'] = new FrozenTime();
         $data = $this->newEntity($array);
+
         if ($this->save($data)) {
+            $this->savedEntity = $data;
+
+            return true;
+        } else {
+            throw new \Cake\Network\Exception\InternalErrorException('couldnt save the log.', 500);
+        }
+    }
+
+    public function updateLog($array)
+    {
+        $entity = $this->savedEntity;
+        $entity = $this->patchEntity($entity, $array);
+        if ($this->save($entity)) {
+            $this->savedEntity = $entity;
+
             return true;
         } else {
             throw new \Cake\Network\Exception\InternalErrorException('couldnt save the log.', 500);

@@ -70,6 +70,20 @@ class AccessLogsComponent extends Component
         return $this->table->saveLog($saveArray);
     }
 
+    /**
+     * specialLog 外部から呼び出すやつ。
+     *
+     * @param [type] $code [description]
+     *
+     * @return [type] [description]
+     */
+    public function specialLog($code)
+    {
+        $saveArray['code'] = $code;
+
+        return $this->table->updateLog($saveArray);
+    }
+
     protected function columnsInfo()
     {
         return $this->table->getColumnsInfo();
@@ -156,6 +170,8 @@ class AccessLogsComponent extends Component
         }
         $request = $this->request->{$param};
         if (is_array($request)) {
+            $request = $this->blakclistChecker($request);
+
             return json_encode($request);
         }
 
@@ -184,5 +200,17 @@ class AccessLogsComponent extends Component
         }
 
         return false;
+    }
+
+    protected function blakclistChecker($array)
+    {
+        $blacklist = $this->_defaultConfig['blacklist'];
+        foreach ($array as $key => $value) {
+            if (in_array($key, $blacklist)) {
+                unset($array[$key]);
+            }
+        }
+
+        return $array;
     }
 }
