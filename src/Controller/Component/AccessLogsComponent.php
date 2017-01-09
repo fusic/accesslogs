@@ -5,6 +5,7 @@ namespace AccessLogs\Controller\Component;
 use Cake\Controller\Component;
 use Cake\ORM\TableRegistry;
 use Cake\Event\Event;
+use Cake\Routing\Router;
 
 // IDEA: beforeRender では、削除が取れない。
 class AccessLogsComponent extends Component
@@ -19,6 +20,7 @@ class AccessLogsComponent extends Component
     protected $action_name = 'action';
     protected $controller_name = 'controller';
     protected $pass_name = 'passes';
+    protected $url = 'url';
     protected $query = 'query';
     protected $data = 'data';
     // user ID read from auth component.
@@ -141,6 +143,7 @@ class AccessLogsComponent extends Component
         $returnArray[$this->action_name] = $this->getRequestInfo('action');
         $returnArray[$this->controller_name] = $this->getRequestInfo('controller');
         $returnArray[$this->pass_name] = $this->getRequestInfo('pass');
+        $returnArray[$this->url] = $this->getUrlInfo();
         $returnArray[$this->query] = $this->getRequestParams('query');
         $returnArray[$this->data] = $this->getRequestParams('data');
 
@@ -179,6 +182,11 @@ class AccessLogsComponent extends Component
         return $this->request->clientIp(false);
     }
 
+    private function getUrlInfo()
+    {
+        return Router::reverse($this->controller->request, false);
+    }
+
     /**
      * get the request info.
      *
@@ -189,6 +197,7 @@ class AccessLogsComponent extends Component
         if (!$this->ignoreChecker($param)) {
             return;
         }
+
         $requestParams = $this->controller->request->params;
         if (!isset($requestParams[$param])) {
             return false;
