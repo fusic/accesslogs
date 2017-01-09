@@ -14,8 +14,6 @@ class AccessLogsComponent extends Component
 
     protected $tableName = 'AccessLogs.AccessLogs';
 
-    protected $savedLog;
-
     // column name settings
     protected $client_ip = 'client_ip';
     protected $action_name = 'action';
@@ -76,10 +74,13 @@ class AccessLogsComponent extends Component
         if (in_array($this->controller->request->action, ['logout', 'login'])) {
             return;
         }
-        $entity = $this->savedLog;
+
+        $entity = $this->table->getSavedEntity();
+        if (empty($entity)) {
+            throw new \Exception('base log is not saved');
+        }
         $userInfo['user_id'] = $this->getAuthInfo();
-        $entity = $this->table->patchEntity($entity, $userInfo);
-        $isSaved = $this->table->updateLog($entity);
+        $isSaved = $this->table->updateLog($userInfo);
         if (!$isSaved) {
             return false;
         }
@@ -96,8 +97,8 @@ class AccessLogsComponent extends Component
      */
     protected function logging($saveArray)
     {
-        $this->savedLog = $this->table->saveLog($saveArray);
-        if ($this->savedLog) {
+        $isSaved = $this->table->saveLog($saveArray);
+        if ($isSaved) {
             return true;
         }
 
