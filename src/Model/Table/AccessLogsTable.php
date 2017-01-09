@@ -55,10 +55,10 @@ class AccessLogsTable extends Table
     public function saveLog(array $array)
     {
         $array['created'] = new FrozenTime();
-        $data = $this->newEntity($array);
+        $entity = $this->newEntity($array);
 
-        if ($this->save($data)) {
-            $this->savedEntity = $data;
+        if ($this->save($entity)) {
+            $this->savedEntity = $entity;
 
             return true;
         } else {
@@ -106,5 +106,10 @@ class AccessLogsTable extends Table
         }
 
         return true;
+    }
+
+    public function getSavedEntity()
+    {
+        return $this->savedEntity;
     }
 }
