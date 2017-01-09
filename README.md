@@ -4,7 +4,7 @@ maintainer: @gorogoroyasu
 ## Installation
 
 ```
-composer require fusic/AccessLogs
+composer require fusic/accesslogs
 ```
 
 # settings
