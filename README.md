@@ -44,7 +44,7 @@ class AccessLogs extends AbstractMigration
               ->addColumn('action',          'string',         ['null' => true, 'limit' => 255])
               ->addColumn('passes',          'string',         ['null' => true, 'limit' => 255])
               ->addColumn('client_ip',       'string',         ['null' => true, 'limit' => 255])
-              ->addColumn('url',             'string',         ['null' => true, 'limit' => 255])
+              ->addColumn('url',             'string',         ['null' => true])
               ->addColumn('code',            'string',         ['null' => true, 'limit' => 255])
               ->addColumn('query',            'string',        ['null' => true])
               ->addColumn('data',            'string',         ['null' => true])
@@ -54,7 +54,6 @@ class AccessLogs extends AbstractMigration
               ->addIndex('action')
               ->addIndex('passes')
               ->addIndex('client_ip')
-              ->addIndex('url')
               ->addIndex('code')
               ->create();
     }
