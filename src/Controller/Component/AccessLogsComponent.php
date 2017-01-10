@@ -257,19 +257,19 @@ class AccessLogsComponent extends Component
     }
 
     /**
-     * unset blacklist from array.
+     * unset blackList from array.
      *
      * @return array
      */
     protected function blakclistChecker($array)
     {
-        if (!isset($this->_defaultConfig['blacklist'])) {
+        if (!isset($this->_defaultConfig['blackList'])) {
             return $array;
         }
 
-        $blacklist = $this->_defaultConfig['blacklist'];
+        $blackList = $this->_defaultConfig['blackList'];
         foreach ($array as $key => $value) {
-            if (in_array($key, $blacklist)) {
+            if (in_array($key, $blackList)) {
                 unset($array[$key]);
             }
         }
