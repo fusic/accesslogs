@@ -171,7 +171,7 @@ class AccessLogsComponent extends Component
     /**
      * getGlobalIp the ip address who accessed the page.
      *
-     * @return ip address
+     * @return null|string address
      */
     protected function getGlobalIp()
     {
@@ -190,6 +190,7 @@ class AccessLogsComponent extends Component
     /**
      * get the request info.
      *
+     * @param string $param
      * @return [array] json encoded params
      */
     protected function getRequestInfo($param)
@@ -212,6 +213,7 @@ class AccessLogsComponent extends Component
     /**
      * getRequestParams.
      *
+     * @param string $param
      * @return [type] [description]
      */
     protected function getRequestParams($param)
