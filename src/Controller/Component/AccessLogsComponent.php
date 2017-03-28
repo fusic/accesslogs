@@ -6,7 +6,6 @@ use Cake\Controller\Component;
 use Cake\ORM\TableRegistry;
 use Cake\Event\Event;
 use Cake\Routing\Router;
-use App\Auth\UserInfo;
 
 // IDEA: beforeRender では、削除が取れない。
 class AccessLogsComponent extends Component
@@ -48,7 +47,7 @@ class AccessLogsComponent extends Component
         if ($this->request->controller == 'Logs') {
             return true;
         }
-        $user = UserInfo::getUserInfo();
+
         // controller object を取得
         $this->controller = $this->_registry->getController();
 
