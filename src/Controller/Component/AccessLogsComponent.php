@@ -42,14 +42,19 @@ class AccessLogsComponent extends Component
      * beforeFilter this function is the main method in this plugin.
      * NOTE: if this method were beforeRender, cannot get Delete Action, because that action will not render anything.
      */
-    public function beforeFilter(Event $event)
+    public function startup(Event $event)
     {
+        if ($this->request->controller == 'Logs') {
+            return true;
+        }
+
         // controller object を取得
         $this->controller = $this->_registry->getController();
 
         // 保存する配列を作るところ。
         $saveArray = $this->createSaveArray();
         $columnInfo = $this->columnsInfo();
+
         // $this->saveLog();
         $isSavable = $this->isSavable($saveArray, $columnInfo);
 
@@ -59,30 +64,6 @@ class AccessLogsComponent extends Component
         }
 
         $isSaved = $this->logging($saveArray);
-
-        if (!$isSaved) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * shutdown in case of the action is Login, beforeFilter cannot get the user_id.
-     * so, I use the shutdown method to get the User Info, and update the log, here.
-     */
-    public function shutdown(Event $event)
-    {
-        if (in_array($this->controller->request->action, ['logout', 'login'])) {
-            return;
-        }
-
-        $entity = $this->table->getSavedEntity();
-        if (empty($entity)) {
-            throw new \Exception('base log is not saved');
-        }
-        $userInfo['user_id'] = $this->getAuthInfo();
-        $isSaved = $this->table->updateLog($userInfo);
         if (!$isSaved) {
             return false;
         }
@@ -146,6 +127,7 @@ class AccessLogsComponent extends Component
         $returnArray[$this->url] = $this->getUrlInfo();
         $returnArray[$this->query] = $this->getRequestParams('query');
         $returnArray[$this->data] = $this->getRequestParams('data');
+        $returnArray[$this->user_id] = $this->getAuthInfo();
 
         return $returnArray;
     }
