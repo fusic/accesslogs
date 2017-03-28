@@ -89,9 +89,41 @@ class AccessLogsComponent extends Component
     }
 
     /**
-     * specialLog 外部から呼び出すやつ。
+     * insertSpecialLog 外部から呼び出すやつ。
      *
-     * @param [type] $code [description]
+     * @param string $code [description]
+     *
+     * @return bool [description]
+     */
+    public function insertSpecialLog($code)
+    {
+        $this->controller = $this->_registry->getController();
+
+        // 保存する配列を作るところ。
+        $saveArray = $this->createSaveArray();
+        // コードを差し込む
+        $saveArray['code'] = $code;
+        $columnInfo = $this->columnsInfo();
+
+        $isSavable = $this->isSavable($saveArray, $columnInfo);
+
+        // save できるかをチェック
+        if (!$isSavable) {
+            return false;
+        }
+
+        $isSaved = $this->logging($saveArray);
+
+        if (!$isSaved) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * updateSpecialLog 外部から呼び出すやつ。
+     *
+     * @param string $code [description]
      *
      * @return [type] [description]
      */
