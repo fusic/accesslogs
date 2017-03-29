@@ -44,10 +44,6 @@ class AccessLogsComponent extends Component
      */
     public function startup(Event $event)
     {
-        if ($this->request->controller == 'Logs') {
-            return true;
-        }
-
         // controller object を取得
         $this->controller = $this->_registry->getController();
 
